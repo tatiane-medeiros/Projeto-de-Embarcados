@@ -1,2 +1,3 @@
-# Projeto-de-Embarcados
-Medidor de tensão e corrente.
+# Projeto de Sistemas Embarcados
+### Medidor de tensão e corrente.
+
