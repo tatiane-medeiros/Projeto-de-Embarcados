@@ -12,6 +12,7 @@ list(APPEND HEADERS
 
 list(APPEND SOURCES
     "${PROJECT_SOURCE_DIR}/src/main.c"
+	"${PROJECT_SOURCE_DIR}/src/ina.c"
 
 )
 
