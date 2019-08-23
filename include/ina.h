@@ -24,7 +24,7 @@
 #define PWR_LSB		2000
 
 /* Sleep time */
-#define SLEEP_TIME	500
+#define DELAY	1000
 
 
 

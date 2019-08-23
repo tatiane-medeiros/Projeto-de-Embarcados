@@ -99,7 +99,7 @@ void ina(void)
 	power *= PWR_LSB;
 	printk("Power: %d uW\n", power);
 	
-	k_sleep(SLEEP_TIME);
+	k_sleep(DELAY);
 
 	}
 	

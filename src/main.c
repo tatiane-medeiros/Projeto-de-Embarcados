@@ -17,6 +17,7 @@
 #include <i2c.h>
 
 #include "ina.h"
+#include "button.h"
 
 /* Sleep time */
 #define SLEEP_TIME	500
@@ -32,6 +33,10 @@
 // calibração
 #define CAL_VAL		(4096)
 
+
+static struct button btn;
+
+
 static int reset(const struct shell *shell, size_t argc, char **argv){
 	shell_print(shell, "Reset\n");
 	return 0;
@@ -43,15 +48,34 @@ SHELL_STATIC_SUBCMD_SET_CREATE(medidor_sub,
 );
 SHELL_CMD_REGISTER(medidor, &medidor_sub, "Comandos usando shell.", NULL);
 
+void changeStatus(){
+	changeState();
+	printf("state: %d\n", state);
+}
+
 
 void ina1(void)
 {
 	ina();
 }
 
+
+void status(void){
+	//struct device *gpiob;	
+	button_configure(&btn, changeStatus);
+	while (1) {
+		u32_t value = 0U;
+		button_read(&btn, &value);
+		k_sleep(SLEEP_TIME);
+	}
+	
+}
+
 // Threads
 
 K_THREAD_DEFINE(ina_1, STACKSIZE, ina1, NULL, NULL, NULL,
+		PRIORITY, 0, K_NO_WAIT);
+K_THREAD_DEFINE(button, STACKSIZE, status, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
 
 
