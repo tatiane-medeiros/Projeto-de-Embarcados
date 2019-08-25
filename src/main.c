@@ -33,23 +33,41 @@
 // calibração
 #define CAL_VAL		(4096)
 
-
+// botão
 static struct button btn;
-
+// estados: 0 - reg corrente, 1 - reg tensao, 2 - reg potencia
+static u8_t state = 0;
 
 static int reset(const struct shell *shell, size_t argc, char **argv){
 	shell_print(shell, "Reset\n");
+	state = 0;
 	return 0;
+}
+
+void setStatus(const struct shell *shell, size_t argc, char **argv){
+	u8_t i = atoi(argv[1]);
+	if (i >=0 && i<3){
+		state = i;
+	}
 }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(medidor_sub,
 	SHELL_CMD_ARG(reset, NULL, "Reset.", reset, 1, NULL),
+	SHELL_CMD_ARG(change, NULL, "Change state to x.", setStatus, 2, NULL),
 	SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(medidor, &medidor_sub, "Comandos usando shell.", NULL);
 
 void changeStatus(){
-	changeState();
+	if(state == 0) {
+		state = 1;
+	}
+	else if(state == 1){
+		state = 2;
+	}
+	else{
+		state = 0;	
+	}
 	printf("state: %d\n", state);
 }
 

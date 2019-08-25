@@ -13,8 +13,6 @@
 #define SW_FLAGS    (GPIO_DIR_IN | INTERRUPT | FALL_EDGE | DEBOUNCE | PULL_UP)
 
 
-// estados
-static u8_t state = 0;
 
 struct button{
     struct device *device;
@@ -24,5 +22,4 @@ struct button{
 
 void button_configure(struct button *btn, gpio_callback_handler_t cb);
 void button_read(struct button *btn, u32_t *state);
-void changeState();
-void setState(u8_t val);
+

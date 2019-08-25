@@ -15,12 +15,3 @@ void button_read(struct button *btn, u32_t *state){
 	gpio_pin_read(btn->device, BUTTON, state);	
 }
 
-void changeState(){
-	if(state == 0) state = 1;
-	else if(state == 1) state = 2;
-	else state = 0;	
-}
-
-void setState(u8_t val){
-	if(val >= 0 && val <3) state = val;
-}
