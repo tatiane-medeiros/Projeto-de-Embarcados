@@ -56,14 +56,14 @@ BT_GATT_SERVICE_DEFINE(vnd_svc,
 	BT_GATT_PRIMARY_SERVICE(&vnd_uuid),
 	BT_GATT_CHARACTERISTIC(&vnd_enc_uuid.uuid,
 			       BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-			       BT_GATT_PERM_READ, read_blvl, NULL, &battery),
+			       BT_GATT_PERM_READ, read_blvl, NULL, &outp),
 	BT_GATT_CCC(blvl_ccc_cfg, blvl_ccc_cfg_changed),
 	
 	BT_GATT_CHARACTERISTIC(&vnd_long_uuid.uuid, BT_GATT_CHRC_READ |
 			       BT_GATT_CHRC_WRITE | BT_GATT_CHRC_EXT_PROP,
 			       BT_GATT_PERM_READ | BT_GATT_PERM_WRITE |
 			       BT_GATT_PERM_PREPARE_WRITE,
-			       read_long_vnd, write_long_vnd, &vnd_message),
+			       read_blvl, NULL, &outp),
 	
 );
 
@@ -143,25 +143,6 @@ static struct bt_conn_auth_cb auth_cb_display = {
 	.passkey_entry = NULL,
 	.cancel = auth_cancel,
 };
-
-void bas_notify(void)
-{
-	if (!simulate_blvl) {
-		return;
-	}
-
-	battery--;
-	printk("%d",battery);
-	if (battery ==  50U ) {
-		/* Software eco battery charger */
-		battery = 100U;
-	}
-
-	bt_gatt_notify(NULL, &vnd_svc.attrs[1], &battery, sizeof(battery));
-}
-
-
-
 
 
 
@@ -243,19 +224,20 @@ void vnd_notify(u8_t st, u32_t val){
 	}
 	
 	/* setar valor da medicao */
-		int i = 12;
-		char aux[7];
-		/*
-		vnd_message[5] = aux[0]; 
-		vnd_message[6] = aux[1]; 
-		vnd_message[7] = aux[2]; 
-		vnd_message[8] = aux[3]; 
-		vnd_message[9] = aux[4]; 
-		vnd_message[10] = aux[5]; 
-		vnd_message[11] = aux[6]; 
-		//vnd_message[12] = aux[7]; 
+	/*	int i = 12;
+		char aux[8];
+		itoa(val, aux, 10);
+		if(aux[0])	vnd_message[5] = aux[0]; 
+		if(aux[1]) vnd_message[6] = aux[1]; 
+		if(aux[2]) vnd_message[7] = aux[2]; 
+		if(aux[3]) vnd_message[8] = aux[3]; 
+		if(aux[4]) vnd_message[9] = aux[4]; 
+		if(aux[5]) vnd_message[10] = aux[5]; 
+		if(aux[6]) vnd_message[11] = aux[6]; 
+		if(aux[7]) vnd_message[12] = aux[7]; 
 		
 		*/
+		outp = val;
 		
 	
 	

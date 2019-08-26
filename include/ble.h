@@ -41,7 +41,7 @@ static const struct bt_uuid_128 vnd_long_uuid = BT_UUID_INIT_128(
 	
 static struct bt_gatt_ccc_cfg  blvl_ccc_cfg[BT_GATT_CCC_MAX] = {};
 static u8_t simulate_blvl;
-static u8_t battery = 100U;
+static u8_t outp = 100U;
 
 	
 	
