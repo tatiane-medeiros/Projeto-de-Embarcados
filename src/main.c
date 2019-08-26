@@ -18,6 +18,7 @@
 
 #include "ina.h"
 #include "button.h"
+#include "ble.h"
 
 /* Sleep time */
 #define SLEEP_TIME	500
@@ -37,10 +38,27 @@
 static struct button btn;
 // estados: 0 - reg corrente, 1 - reg tensao, 2 - reg potencia
 static u8_t state = 0;
+static u32_t global_ina = 0;
 
 static int reset(const struct shell *shell, size_t argc, char **argv){
 	shell_print(shell, "Reset\n");
 	state = 0;
+	return 0;
+}
+
+static int setCurrent(const struct shell *shell, size_t argc, char **argv){
+	shell_print(shell, "Medindo corrente\n");
+	state = 0;
+	return 0;
+}
+static int setPower(const struct shell *shell, size_t argc, char **argv){
+	shell_print(shell, "Medindo potência\n");
+	state = 2;
+	return 0;
+}
+static int setVoltage(const struct shell *shell, size_t argc, char **argv){
+	shell_print(shell, "Medindo tensão\n");
+	state = 1;
 	return 0;
 }
 
@@ -53,7 +71,10 @@ void setStatus(const struct shell *shell, size_t argc, char **argv){
 
 SHELL_STATIC_SUBCMD_SET_CREATE(medidor_sub,
 	SHELL_CMD_ARG(reset, NULL, "Reset.", reset, 1, NULL),
-	SHELL_CMD_ARG(change, NULL, "Change state to x.", setStatus, 2, NULL),
+	SHELL_CMD_ARG(current, NULL, "Medindo corrente.", setCurrent, 1, NULL),
+	SHELL_CMD_ARG(power, NULL, "Medindo potência.", setPower, 1, NULL),
+	SHELL_CMD_ARG(voltage, NULL, "Medindo tensão.", setVoltage, 1, NULL),
+	SHELL_CMD_ARG(change, NULL, "Muda estado para x.", setStatus, 2, NULL),
 	SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(medidor, &medidor_sub, "Comandos usando shell.", NULL);
@@ -74,7 +95,12 @@ void changeStatus(){
 
 void ina1(void)
 {
-	ina();
+	ina_calibration();
+	while(1){
+		global_ina = ina(state);
+		k_sleep(DELAY);
+	}
+	
 }
 
 
@@ -89,11 +115,27 @@ void status(void){
 	
 }
 
+
+void init_ble(void){
+	
+	vnd_init();
+		
+	while(1){
+		vnd_notify(state, global_ina);
+		k_sleep(SLEEP_TIME);
+	}
+	
+}	
+
+
+
 // Threads
 
 K_THREAD_DEFINE(ina_1, STACKSIZE, ina1, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
 K_THREAD_DEFINE(button, STACKSIZE, status, NULL, NULL, NULL,
+		PRIORITY, 0, K_NO_WAIT);
+K_THREAD_DEFINE(ble, STACKSIZE, init_ble, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
 
 

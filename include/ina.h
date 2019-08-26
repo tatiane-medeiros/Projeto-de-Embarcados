@@ -32,5 +32,7 @@ int read_reg16(struct device *i2c_dev, u8_t reg_addr, u8_t *data);
 
 int write_reg16(struct device *i2c_dev, u8_t reg_addr, u8_t *data);
 
-void ina(void);
+void ina_calibration(void);
+
+u32_t ina(u8_t st);
 

@@ -1,5 +1,12 @@
 #include "ina.h"
 
+struct device *ina_dev;
+
+u8_t data[2];
+u32_t shunt_volt;
+u32_t bus_volt;
+u32_t current;
+u32_t power;
 
 int read_reg16(struct device *i2c_dev, u8_t reg_addr,
 	       u8_t *data)
@@ -50,15 +57,9 @@ int write_reg16(struct device *i2c_dev, u8_t reg_addr,
 }
 
 
-
-void ina(void)
-{
-	struct device *i2c_dev;
-	u8_t data[2];
-	u32_t shunt_volt, bus_volt, current, power;
-
-	i2c_dev = device_get_binding("I2C_0");
-	if (!i2c_dev) {
+void ina_calibration(void){
+	ina_dev = device_get_binding("I2C_0");
+	if (!ina_dev) {
 		printk("I2C: Device not found.\n");
 		return;
 	}
@@ -66,41 +67,51 @@ void ina(void)
 	/* Configure the chip using default values */
 	data[0] = 0x03;
 	data[1] = 0x99;
-	write_reg16(i2c_dev, 0x00, data);
+	write_reg16(ina_dev, 0x00, data);
 
 	/* Write the calibration value */
 	data[0] = (CAL_VAL & 0xFF00) >> 8;
 	data[1] = CAL_VAL & 0xFF;
-	write_reg16(i2c_dev, 0x05, data);
+	write_reg16(ina_dev, 0x05, data);
+	
+}
 
-	while(1){
+
+u32_t ina(u8_t st)
+{
+		
+
+	u32_t aux;
+	
 		/* Read bus voltage */
-	read_reg16(i2c_dev, 0x02, data);
+	read_reg16(ina_dev, 0x02, data);
 	bus_volt = (data[0] << 8) | data[1];
 	bus_volt >>= 3; /* 3 LSBs are not data */
 	bus_volt *= 4U; /* each LSB is 4 mV */
-	printk("Bus Voltage: %d mV\n", bus_volt);
+	//printk("Bus Voltage: %d mV\n", bus_volt);
 
 	/* Read shunt voltage */
-	read_reg16(i2c_dev, 0x01, data);
+	read_reg16(ina_dev, 0x01, data);
 	shunt_volt = (data[0] << 8) | data[1];
 	shunt_volt *= 10U; /* to uV since each LSB is 0.01 mV */
-	printk("Shunt Voltage: %d uV\n", shunt_volt);
-
-	/* Read current */
-	read_reg16(i2c_dev, 0x04, data);
-	current = (data[0] << 8) | data[1];
-	current *= CUR_LSB;
-	printk("Current: %d uA\n", current);
-
-	/* Read power  */
-	read_reg16(i2c_dev, 0x03, data);
-	power = (data[0] << 8) | data[1];
-	power *= PWR_LSB;
+	printk("Voltage: %d uV\n", shunt_volt);
+	
+	aux = shunt_volt - bus_volt/100;
+	
+	/* current by shunt */
+	current = aux/100;
+	printk("Current: %d mA\n", current);
+	
+	/* power */
+	power = current * (aux/1000);
 	printk("Power: %d uW\n", power);
 	
-	k_sleep(DELAY);
-
+	if(st == 0){
+		return current;
 	}
+	else if(st == 1){
+		return aux;
+	}
+	else return power;
 	
 }

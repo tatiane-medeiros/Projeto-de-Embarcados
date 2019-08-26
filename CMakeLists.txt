@@ -14,6 +14,7 @@ list(APPEND SOURCES
     "${PROJECT_SOURCE_DIR}/src/main.c"
 	"${PROJECT_SOURCE_DIR}/src/ina.c"
 	"${PROJECT_SOURCE_DIR}/src/button.c"
+	"${PROJECT_SOURCE_DIR}/src/ble.c"
 
 )
 

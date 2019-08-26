@@ -4,7 +4,8 @@
 #include <gpio.h>
 
 #define PORT SW0_GPIO_CONTROLLER
-#define BUTTON SW0_GPIO_PIN
+//#define BUTTON SW0_GPIO_PIN
+#define BUTTON 18
 #define INTERRUPT   GPIO_INT
 #define FALL_EDGE   (GPIO_INT_EDGE | GPIO_INT_ACTIVE_LOW)
 #define DEBOUNCE    GPIO_INT_DEBOUNCE
