@@ -80,7 +80,11 @@ void ina_calibration(void){
 u32_t ina(u8_t st)
 {
 		
-
+	if (!ina_dev) {
+		printk("I2C: Device not found.\n");
+		return;
+	}
+	
 	u32_t aux;
 	
 		/* Read bus voltage */
@@ -94,7 +98,7 @@ u32_t ina(u8_t st)
 	read_reg16(ina_dev, 0x01, data);
 	shunt_volt = (data[0] << 8) | data[1];
 	shunt_volt *= 10U; /* to uV since each LSB is 0.01 mV */
-	printk("Voltage: %d uV\n", shunt_volt);
+	printk("\nVoltage: %d uV\n", shunt_volt);
 	
 	aux = shunt_volt - bus_volt/100;
 	

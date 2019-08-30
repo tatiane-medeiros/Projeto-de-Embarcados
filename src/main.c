@@ -92,6 +92,17 @@ void changeStatus(){
 	printf("state: %d\n", state);
 }
 
+void fromEncoder(int value){
+	if(value < 0){
+		state = 0;
+	}
+	else if( value > 0){
+		state = 2;
+	}
+	else state = 1;
+	printf("state: %d\n", state);
+}
+
 
 void ina1(void)
 {
@@ -105,12 +116,31 @@ void ina1(void)
 
 
 void status(void){
-	//struct device *gpiob;	
+
 	button_configure(&btn, changeStatus);
+	int counter = 0;
+	int prev = 0;
 	while (1) {
-		u32_t value = 0U;
-		button_read(&btn, &value);
-		k_sleep(SLEEP_TIME);
+		u32_t valA = 0U;
+		u32_t valB = 0U;
+		//button_read(&btn, &value);
+		valA = button_read_pinA(&btn);
+		valB = button_read_pinB(&btn);
+		
+		if (valB > valA && counter < 2){ 
+			counter++;
+		} 
+		else if(valA > valB && counter > -2) {
+			counter--;
+		}
+		
+		if(prev != counter){
+			printk("%d\n",counter);
+			fromEncoder(counter);
+		}
+		prev = counter;
+		
+		k_sleep(100);
 	}
 	
 }
@@ -134,20 +164,8 @@ void init_ble(void){
 K_THREAD_DEFINE(ina_1, STACKSIZE, ina1, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
 K_THREAD_DEFINE(button, STACKSIZE, status, NULL, NULL, NULL,
-		PRIORITY, 0, K_NO_WAIT);
+		PRIORITY, 1, K_NO_WAIT);
 K_THREAD_DEFINE(ble, STACKSIZE, init_ble, NULL, NULL, NULL,
 		PRIORITY, 0, K_NO_WAIT);
 
 
-
-/*
-int main(void) {
-    
-    while(1){
-        u32_t value = 0U;
-	    k_sleep(SLEEP_TIME);
-    }
-
-    return 0;
-}
-*/
