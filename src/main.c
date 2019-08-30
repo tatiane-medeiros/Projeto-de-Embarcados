@@ -38,7 +38,7 @@
 static struct button btn;
 // estados: 0 - reg corrente, 1 - reg tensao, 2 - reg potencia
 static u8_t state = 0;
-static u32_t global_ina = 0;
+static int global_ina = 0;
 
 static int reset(const struct shell *shell, size_t argc, char **argv){
 	shell_print(shell, "Reset\n");
@@ -135,7 +135,7 @@ void status(void){
 		}
 		
 		if(prev != counter){
-			printk("%d\n",counter);
+			//printk("%d\n",counter);
 			fromEncoder(counter);
 		}
 		prev = counter;

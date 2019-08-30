@@ -1,54 +1,12 @@
 #include "ble.h"
 
 
-
-//static struct bt_gatt_ccc_cfg vnd_ccc_cfg[BT_GATT_CCC_MAX] = {};
-
-static ssize_t read_long_vnd(struct bt_conn *conn,
-			     const struct bt_gatt_attr *attr, void *buf,
-			     u16_t len, u16_t offset)
-{
-	const char *value = attr->user_data;
-
-	return bt_gatt_attr_read(conn, attr, buf, len, offset, value,
-				 sizeof(vnd_message));
-}
-
-static ssize_t write_long_vnd(struct bt_conn *conn,
-			      const struct bt_gatt_attr *attr, const void *buf,
-			      u16_t len, u16_t offset, u8_t flags)
-{
-	u8_t *value = attr->user_data;
-
-	if (flags & BT_GATT_WRITE_FLAG_PREPARE) {
-		return 0;
-	}
-
-	if (offset + len > sizeof(vnd_message)) {
-		return BT_GATT_ERR(BT_ATT_ERR_INVALID_OFFSET);
-	}
-
-	memcpy(value + offset, buf, len);
-
-	return len;
-}
-
-
-
-static void blvl_ccc_cfg_changed(const struct bt_gatt_attr *attr,
+static void ess_ccc_cfg_changed(const struct bt_gatt_attr *attr,
 				 u16_t value)
 {
-	simulate_blvl = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
+	testing = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
 }
 
-static ssize_t read_blvl(struct bt_conn *conn, const struct bt_gatt_attr *attr,
-			 void *buf, u16_t len, u16_t offset)
-{
-	const char *value = attr->user_data;
-
-	return bt_gatt_attr_read(conn, attr, buf, len, offset, value,
-				 sizeof(*value));
-}
 
 
 /* Vendor Primary Service Declaration */
@@ -56,15 +14,13 @@ BT_GATT_SERVICE_DEFINE(vnd_svc,
 	BT_GATT_PRIMARY_SERVICE(&vnd_uuid),
 	BT_GATT_CHARACTERISTIC(&vnd_enc_uuid.uuid,
 			       BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-			       BT_GATT_PERM_READ, read_blvl, NULL, &outp),
-	BT_GATT_CCC(blvl_ccc_cfg, blvl_ccc_cfg_changed),
+			       BT_GATT_PERM_READ, NULL, NULL, NULL),
+	BT_GATT_CCC(ess_ccc_cfg, ess_ccc_cfg_changed),
 	
 	BT_GATT_CHARACTERISTIC(&vnd_long_uuid.uuid, BT_GATT_CHRC_READ |
-			       BT_GATT_CHRC_WRITE | BT_GATT_CHRC_EXT_PROP,
-			       BT_GATT_PERM_READ | BT_GATT_PERM_WRITE |
-			       BT_GATT_PERM_PREPARE_WRITE,
-			       read_blvl, NULL, &outp),
-	
+			      BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
+			      BT_GATT_PERM_READ, NULL, NULL, NULL),
+	BT_GATT_CCC(ess_ccc_cfg, ess_ccc_cfg_changed),
 );
 
 
@@ -161,7 +117,7 @@ void vnd_init(void){
 	
 }
 
-void vnd_notify(u8_t st, u32_t val){
+void vnd_notify(u8_t st, int val){
 		
 	if(st == 0U)
 	{
@@ -178,7 +134,7 @@ void vnd_notify(u8_t st, u32_t val){
 		vnd_message[9] = '0';
 		vnd_message[10] = '0';
 		vnd_message[11] = '0';
-		vnd_message[12] = '0';
+		vnd_message[12] ='0';
 		vnd_message[13] ='m';
 		vnd_message[14] ='A';
 
@@ -192,13 +148,14 @@ void vnd_notify(u8_t st, u32_t val){
 		vnd_message[3] ='t';
 		vnd_message[4] ='.';
 		vnd_message[5] = ':'; 
+
 		vnd_message[6] ='0';
 		vnd_message[7] = '0';
 		vnd_message[8] ='0';
 		vnd_message[9] = '0';
 		vnd_message[10] = '0';
 		vnd_message[11] = '0';
-		vnd_message[12] = '0';
+		vnd_message[12] ='0';
 		vnd_message[13] ='m';
 		vnd_message[14] ='V';
 
@@ -223,24 +180,20 @@ void vnd_notify(u8_t st, u32_t val){
 
 	}
 	
-	/* setar valor da medicao */
-	/*	int i = 12;
-		char aux[8];
-		itoa(val, aux, 10);
-		if(aux[0])	vnd_message[5] = aux[0]; 
-		if(aux[1]) vnd_message[6] = aux[1]; 
-		if(aux[2]) vnd_message[7] = aux[2]; 
-		if(aux[3]) vnd_message[8] = aux[3]; 
-		if(aux[4]) vnd_message[9] = aux[4]; 
-		if(aux[5]) vnd_message[10] = aux[5]; 
-		if(aux[6]) vnd_message[11] = aux[6]; 
-		if(aux[7]) vnd_message[12] = aux[7]; 
-		
-		*/
-		outp = val;
-		
+	outp = val;
+	int i = 12;
+	char aux1;
+	while(val > 10 && i >5 ){
+		aux1 = (val%10) + 48;
+		vnd_message[i] = aux1;
+		i--;
+		val = val/10;
+	}
+	if(i > 4) vnd_message[i] = val+ 48;;
+
 	
 	
 	bt_gatt_notify(NULL, &vnd_svc.attrs[2], &vnd_message, sizeof(vnd_message));
+	//bt_gatt_notify(NULL, &vnd_svc.attrs[4], &val, sizeof(val));
 	
 }
